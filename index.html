@@ -23,6 +23,7 @@
       <nav class="tabs" role="tablist" aria-label="Sections">
         <button class="tab" role="tab" data-tab="chords"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3v18M11 3v18M15 3v18M19 3v18M5 6h16M5 11h16M5 16h16"/><circle cx="11" cy="8.5" r="1.8" fill="currentColor" stroke="none"/><circle cx="15" cy="13.5" r="1.8" fill="currentColor" stroke="none"/></svg><span class="tl">Chords</span></button>
         <button class="tab" role="tab" data-tab="live"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 8.5A2.5 2.5 0 0 1 5.5 6H7l1.5-2h7L17 6h1.5A2.5 2.5 0 0 1 21 8.5v9a2.5 2.5 0 0 1-2.5 2.5h-13A2.5 2.5 0 0 1 3 17.5z"/><circle cx="12" cy="12.5" r="3.5"/></svg><span class="tl">Live</span></button>
+        <button class="tab" role="tab" data-tab="song"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 3H6.5A1.5 1.5 0 0 0 5 4.5v15A1.5 1.5 0 0 0 6.5 21h11a1.5 1.5 0 0 0 1.5-1.5V8z"/><path d="M14 3v5h5"/><path d="M11 17.5V11l4-1"/><circle cx="9.5" cy="17.5" r="1.5"/></svg><span class="tl">Song</span></button>
         <button class="tab" role="tab" data-tab="notes"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18V5l11-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="17" cy="16" r="3"/></svg><span class="tl">Notes</span></button>
         <button class="tab" role="tab" data-tab="theory"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19.5V5a2 2 0 0 1 2-2h14v15H6.5A2.5 2.5 0 0 0 4 20.5 2.5 2.5 0 0 0 6.5 23H20v-5"/><path d="M9 8h7M9 12h5"/></svg><span class="tl">Theory</span></button>
         <button class="tab" role="tab" data-tab="ear"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 15v-3a9 9 0 0 1 18 0v3"/><rect x="2.5" y="14" width="5" height="7.5" rx="2"/><rect x="16.5" y="14" width="5" height="7.5" rx="2"/></svg><span class="tl"><span class="hide-sm">Ear Training</span><span class="show-sm">Ear</span></span></button>
@@ -128,6 +129,107 @@
             </ol>
           </details>
         </aside>
+      </div>
+    </section>
+
+    <!-- ================= SONG → CHORDS (beta) ================= -->
+    <section class="panel" id="panel-song" role="tabpanel">
+      <div class="panel-head">
+        <div>
+          <h1>Song to chords <span class="badge inter">Beta</span></h1>
+          <p class="sub">Add a song and Fretwork listens to it, finds the beat and the key, and shows you the chords to play along.</p>
+        </div>
+      </div>
+
+      <div class="card song-input" id="songInput">
+        <div class="song-drop" id="songDrop">
+          <div class="song-drop-icon" aria-hidden="true">🎵</div>
+          <div>
+            <b>Drop an audio file here</b>
+            <p class="sub small">MP3, M4A, WAV, OGG or FLAC, up to 10 minutes. The file stays on your device.</p>
+          </div>
+          <label class="btn primary">Choose file<input type="file" id="songFile" accept="audio/*,.mp3,.m4a,.wav,.ogg,.oga,.flac,.aac,.webm" hidden></label>
+        </div>
+        <form class="song-url" id="songUrlForm">
+          <label class="field">
+            <span>…or paste a link to an audio file</span>
+            <div class="song-url-row">
+              <input class="input" id="songUrl" type="url" inputmode="url" placeholder="https://example.com/song.mp3" aria-label="Audio file link">
+              <button class="btn" type="submit">Analyse link</button>
+            </div>
+          </label>
+          <p class="sub small">The link must point straight to an audio file. Streaming sites such as YouTube or Spotify don't let other apps read their audio.</p>
+        </form>
+        <div class="song-progress" id="songProgress" hidden>
+          <div class="song-progress-text"><span id="songProgressText">Loading…</span><span id="songProgressPct"></span></div>
+          <div class="lp-bar"><i id="songProgressFill"></i></div>
+        </div>
+        <div class="song-error" id="songError" role="alert" hidden></div>
+      </div>
+
+      <div id="songResult" hidden>
+        <div class="card song-summary">
+          <div class="song-title">
+            <div class="song-name" id="songName"></div>
+            <div class="song-facts" id="songFacts"></div>
+          </div>
+          <div class="song-opts">
+            <div class="seg sm" id="songDetail" role="group" aria-label="Chord detail">
+              <button data-d="simple">Simple</button>
+              <button data-d="sevenths">With 7ths</button>
+            </div>
+            <label class="song-capo">Capo
+              <select id="songCapo" class="input"></select>
+            </label>
+            <button class="btn" id="songCopy">Copy chords</button>
+            <button class="btn" id="songNew">New song</button>
+          </div>
+          <p class="sub small song-capo-tip" id="songCapoTip" hidden></p>
+        </div>
+
+        <div class="song-layout">
+          <div class="card song-player">
+            <div class="song-now">
+              <div class="song-now-main">
+                <div class="song-label">Now</div>
+                <div class="song-now-name" id="songNowName">–</div>
+                <div class="song-now-diagram" id="songNowDiagram"></div>
+              </div>
+              <div class="song-next">
+                <div class="song-label">Next <span id="songNextIn"></span></div>
+                <div class="song-next-name" id="songNextName">–</div>
+                <div class="song-next-diagram" id="songNextDiagram"></div>
+              </div>
+            </div>
+            <div class="song-beats" id="songBeats" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+            <div class="song-transport">
+              <button class="btn primary big" id="songPlay">▶ Play</button>
+              <div class="song-time"><span id="songTime">0:00</span> / <span id="songDur">0:00</span></div>
+              <label class="check"><input type="checkbox" id="songStrum"> Strum chord changes</label>
+            </div>
+            <div class="song-timeline" id="songTimeline" role="slider" tabindex="0" aria-label="Song position" aria-valuemin="0" aria-valuemax="0" aria-valuenow="0">
+              <div class="song-tl-track" id="songTlTrack"></div>
+              <div class="song-playhead" id="songPlayhead"></div>
+            </div>
+            <audio id="songAudio" preload="auto"></audio>
+          </div>
+
+          <aside class="card song-chords">
+            <h2>Chords in this song</h2>
+            <p class="sub small" id="songChordsHint">Tap a chord to hear it. Most-used first.</p>
+            <div class="song-chord-grid" id="songChordGrid"></div>
+          </aside>
+        </div>
+
+        <div class="card">
+          <div class="card-head">
+            <h2>Chord sheet</h2>
+            <span class="sub small">One box = one bar of 4 beats. Tap a bar to jump there.</span>
+          </div>
+          <div class="song-sheet" id="songSheet"></div>
+        </div>
+
+        <p class="sub small song-disclaimer">Beta: chords are detected automatically and work best on clear recordings of guitar or piano with a steady beat. Trust your ears. If a chord sounds wrong, try its neighbours on the circle of fifths or the relative minor/major.</p>
       </div>
     </section>
 
@@ -532,5 +634,7 @@ Am7  D7  Gmaj7  G/B</textarea>
   <script src="theory.js"></script>
   <script src="learn.js"></script>
   <script src="live.js"></script>
+  <script src="songcore.js"></script>
+  <script src="song.js"></script>
 </body>
 </html>

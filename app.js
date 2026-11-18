@@ -154,7 +154,7 @@ applyTheme();
 /* =========================================================
    Tabs
    ========================================================= */
-const TABS = ['chords', 'live', 'notes', 'theory', 'ear', 'metronome', 'timer'];
+const TABS = ['chords', 'live', 'song', 'notes', 'theory', 'ear', 'metronome', 'timer'];
 let currentTab = 'chords';
 
 function showTab(name) {

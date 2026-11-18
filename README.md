@@ -10,6 +10,7 @@ Fretwork is plain HTML, CSS and JavaScript. There is no build step, no framework
 | --- | --- |
 | **Chords** | A library of 42 common chords (major, minor, 7th, maj7, m7, sus/add, power) with finger diagrams and audio playback. Search and filter by type. |
 | **Live** *(beta)* | Point your camera at the guitar neck. The coach shows where each finger goes, marks each finger correct or incorrect, and scores clean chord changes. |
+| **Song** *(beta)* | Upload an audio file, or paste a direct link to one. Fretwork detects the tempo, key and chords and shows a synced player (current and next chord diagrams), a clickable timeline, a bar-by-bar chord sheet you can copy, and a capo helper. |
 | **Notes** | An interactive fretboard with sharps/flats, highlighting for a chosen note, a "naturals only" view, a fretboard quiz and a tuning reference. |
 | **Theory** | 11 short lessons (intervals, scales, chord building, Roman numerals, circle of fifths, modes, rhythm, capos…), plus a key explorer, an interactive circle of fifths, a chord finder ("what chord am I holding?") and a transpose and capo helper. |
 | **Ear Training** | Interval and chord-type recognition at three difficulty levels, with session and all-time accuracy stats. |
@@ -60,6 +61,30 @@ Tips: use bright, even light, avoid having a window behind you, and wear plain c
 
 Both libraries load from jsDelivr / Google Cloud Storage the first time you open the Live tab, so that tab needs an internet connection.
 
+## Using Song to chords
+
+1. Open the **Song** tab and drop in an audio file (MP3, M4A, WAV, OGG, FLAC; up to 10 minutes), or paste a **direct** link to an audio file.
+2. Wait a few seconds while Fretwork finds the beat, the key and the chords.
+3. Press **Play**. The big diagram shows the chord to play now, and the smaller one shows the next chord with a beat countdown. Tap the timeline or any bar in the chord sheet to jump there.
+4. Optional:
+   - **With 7ths** also detects 7, maj7 and m7 chords.
+   - **Capo** shows the shapes to play with a capo, and suggests the capo position that gives the most easy open shapes.
+   - **Strum chord changes** plays each new chord as the song reaches it.
+   - **Copy chords** copies a text chord sheet.
+
+Links from streaming sites (YouTube, Spotify, Apple Music, SoundCloud…) can't be analysed, because those sites don't let other web apps read their audio. Links to other websites only work if the server allows cross-origin requests (CORS). Otherwise, download the file and upload it.
+
+### How the chord detection works
+
+All analysis runs in the browser ([songcore.js](songcore.js)), and the audio is never uploaded.
+
+- **Beat:** a spectral-flux onset envelope, an autocorrelation tempo estimate (with a half/double-tempo check), and a dynamic-programming beat tracker.
+- **Notes:** an 8192-point FFT. Spectral peaks are tuning-corrected, overtones are suppressed, and the result is folded into treble and bass chroma (12 pitch classes), averaged per beat.
+- **Chords:** templates with harmonic weighting are matched for major and minor chords (plus 7ths when enabled), with a bonus for the bass note and for chords in the key. A Viterbi pass smooths the result so chords don't flicker.
+- **Key:** worked out from which key's chords cover most of the song, with weight on the tonic chord.
+
+Detection works best on clear recordings with a steady beat, where guitar or piano carries the harmony. Treat the results as a starting point and trust your ears.
+
 ## Project structure
 
 ```text
@@ -70,9 +95,11 @@ app.js       Core: helpers, audio engine (Web Audio), storage, tabs, chords, not
 theory.js    Key explorer (scales, modes, diatonic chords, progressions) and ear training
 learn.js     Theory lessons, circle of fifths, chord finder, transpose and capo
 live.js      Live coach: camera, hand/neck tracking, calibration, scoring
+songcore.js  Song analysis engine (beats, key, chords); no DOM, also runs in Node
+song.js      Song tab: file/link loading, synced player, timeline, chord sheet, capo helper
 ```
 
-The scripts are classic (non-module) scripts that share globals. They must load in the order used in `index.html`: `chords.js` → `app.js` → `theory.js` → `learn.js` → `live.js`.
+The scripts are classic (non-module) scripts that share globals. They must load in the order used in `index.html`: `chords.js` → `app.js` → `theory.js` → `learn.js` → `live.js` → `songcore.js` → `song.js`.
 
 ### Adding a chord
 
@@ -88,13 +115,13 @@ Add an entry to `CHORDS` in [chords.js](chords.js):
 - `base` *(optional)*: first fret shown in the diagram
 - `flats` *(optional)*: spell notes with flats
 
-The new chord appears automatically in the library, the Live coach and the chord finder.
+The new chord appears automatically in the library, the Live coach and the chord finder. The Song tab also uses it whenever it detects that chord, in place of a generic barre shape.
 
 ## Data and privacy
 
 - All settings, stats and practice history are stored in `localStorage` under keys prefixed with `fretwork:`. Clearing your browser's site data resets them.
-- The camera feed never leaves your device.
-- The only network requests are for Google Fonts and the Live coach's libraries and model.
+- The camera feed and any songs you analyse never leave your device.
+- The only network requests are for Google Fonts, the Live coach's libraries and model, and any audio link you paste into the Song tab.
 
 ## Browser notes
 
