@@ -226,7 +226,7 @@ function suggestCapo() {
    ========================================================= */
 function renderAll() {
   renderSummary();
-  renderChordGrid();
+  renderSongChordGrid();
   renderTimeline();
   renderSheet();
   updatePlayback(true);
@@ -266,7 +266,7 @@ const shapeLabel = (c) => {
 };
 const soundsAs = (c) => (song.capo && c ? `<span class="song-sounds">sounds as ${pretty(c.name)}</span>` : '');
 
-function renderChordGrid() {
+function renderSongChordGrid() {
   const stats = chordStats();
   const total = stats.reduce((s, c) => s + c.dur, 0) || 1;
   $('#songChordGrid').innerHTML = stats.map(({ chord, dur }) => {
@@ -355,9 +355,9 @@ function updatePlayback(force = false) {
   }
 }
 
-function loop() {
+function songLoop() {
   updatePlayback();
-  if (!audio.paused) song.raf = requestAnimationFrame(loop);
+  if (!audio.paused) song.raf = requestAnimationFrame(songLoop);
 }
 function seek(t) {
   audio.currentTime = Math.max(0, Math.min(song.feat.duration - 0.05, t));
@@ -365,7 +365,7 @@ function seek(t) {
   updatePlayback(true);
 }
 
-audio.addEventListener('play', () => { $('#songPlay').textContent = '⏸ Pause'; cancelAnimationFrame(song.raf); song.lastSeg = -1; loop(); });
+audio.addEventListener('play', () => { $('#songPlay').textContent = '⏸ Pause'; cancelAnimationFrame(song.raf); song.lastSeg = -1; songLoop(); });
 audio.addEventListener('pause', () => { $('#songPlay').textContent = '▶ Play'; cancelAnimationFrame(song.raf); updatePlayback(true); });
 audio.addEventListener('seeked', () => { if (audio.paused) updatePlayback(true); });
 
