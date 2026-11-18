@@ -1,0 +1,536 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#2a9d8f">
+  <script>
+    try { const t = JSON.parse(localStorage.getItem('fretwork:theme')); if (t === 'light' || t === 'dark') document.documentElement.dataset.theme = t; } catch (e) {}
+  </script>
+  <title>Fretwork · Guitar Practice</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@500;600;700;800&display=swap">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <a class="brand" href="#chords">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19.6 2.6a1.5 1.5 0 0 1 2 2l-5.2 5.2.6.6-1.4 1.4-.6-.6-1.6 1.6a4.5 4.5 0 0 1-1.1 4.6c-1.4 1.4-3.3 1.8-4.6 3.1-1.6 1.6-4.4 1.2-5.7-.6-1.4-1.9-.7-4.3.8-5.8 1.3-1.3 1.7-3.2 3.1-4.6a4.5 4.5 0 0 1 4.6-1.1l1.6-1.6-.6-.6 1.4-1.4.6.6 5.1-5.2ZM8.5 13a1.5 1.5 0 1 0 2.1 2.1A1.5 1.5 0 0 0 8.5 13Z" fill="currentColor"/></svg>
+        Fretwork
+      </a>
+      <nav class="tabs" role="tablist" aria-label="Sections">
+        <button class="tab" role="tab" data-tab="chords"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3v18M11 3v18M15 3v18M19 3v18M5 6h16M5 11h16M5 16h16"/><circle cx="11" cy="8.5" r="1.8" fill="currentColor" stroke="none"/><circle cx="15" cy="13.5" r="1.8" fill="currentColor" stroke="none"/></svg><span class="tl">Chords</span></button>
+        <button class="tab" role="tab" data-tab="live"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 8.5A2.5 2.5 0 0 1 5.5 6H7l1.5-2h7L17 6h1.5A2.5 2.5 0 0 1 21 8.5v9a2.5 2.5 0 0 1-2.5 2.5h-13A2.5 2.5 0 0 1 3 17.5z"/><circle cx="12" cy="12.5" r="3.5"/></svg><span class="tl">Live</span></button>
+        <button class="tab" role="tab" data-tab="notes"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18V5l11-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="17" cy="16" r="3"/></svg><span class="tl">Notes</span></button>
+        <button class="tab" role="tab" data-tab="theory"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19.5V5a2 2 0 0 1 2-2h14v15H6.5A2.5 2.5 0 0 0 4 20.5 2.5 2.5 0 0 0 6.5 23H20v-5"/><path d="M9 8h7M9 12h5"/></svg><span class="tl">Theory</span></button>
+        <button class="tab" role="tab" data-tab="ear"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 15v-3a9 9 0 0 1 18 0v3"/><rect x="2.5" y="14" width="5" height="7.5" rx="2"/><rect x="16.5" y="14" width="5" height="7.5" rx="2"/></svg><span class="tl"><span class="hide-sm">Ear Training</span><span class="show-sm">Ear</span></span></button>
+        <button class="tab" role="tab" data-tab="metronome"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9.5 3h5l4.5 18H5z"/><path d="M12 16l5-9M7 16h10"/></svg><span class="tl"><span class="hide-sm">Metronome</span><span class="show-sm">Tempo</span></span></button>
+        <button class="tab" role="tab" data-tab="timer"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2.5M9 2h6"/></svg><span class="tl">Timer</span></button>
+      </nav>
+      <div class="status">
+        <button class="pill" id="metroPill" hidden data-goto="metronome" title="Metronome running"></button>
+        <button class="pill" id="timerPill" hidden data-goto="timer" title="Timer running"></button>
+        <button class="theme-btn" id="themeBtn" aria-label="Theme"></button>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <!-- ================= CHORDS ================= -->
+    <section class="panel" id="panel-chords" role="tabpanel">
+      <div class="panel-head">
+        <div>
+          <h1>Chord library</h1>
+          <p class="sub">Pick a chord to see where each finger goes, then press play to hear how it should sound.</p>
+        </div>
+        <input id="chordSearch" class="input search" type="search" placeholder="Search: Am, G7, sus…" aria-label="Search chords">
+      </div>
+      <div class="chips" id="chordFilters" role="group" aria-label="Chord type"></div>
+
+      <div class="chord-layout">
+        <div class="chord-grid" id="chordGrid"></div>
+        <aside class="card chord-detail" id="chordDetail" aria-live="polite"></aside>
+      </div>
+    </section>
+
+    <!-- ================= LIVE COACH (camera) ================= -->
+    <section class="panel" id="panel-live" role="tabpanel">
+      <div class="panel-head">
+        <div>
+          <h1>Live coach <span class="badge inter">Beta</span></h1>
+          <p class="sub">Point your camera at your guitar. The coach shows where each finger goes and tells you how to fix it in real time.</p>
+        </div>
+      </div>
+
+      <div class="live-layout">
+        <div class="card live-stage-card">
+          <div class="live-stage" id="liveStage">
+            <video id="liveVideo" class="live-video" playsinline muted></video>
+            <canvas id="liveCanvas"></canvas>
+            <div class="live-overlay" id="liveOverlay">
+              <div class="live-overlay-inner">
+                <div class="live-icon">📷</div>
+                <h2>Camera is off</h2>
+                <p class="sub">Your video is processed on this device and never uploaded.</p>
+                <button class="btn primary big" id="liveStartBig">Start camera</button>
+              </div>
+            </div>
+            <div class="live-banner" id="liveBanner" hidden></div>
+            <div class="live-toast" id="liveToast" hidden></div>
+          </div>
+          <div class="live-controls">
+            <button class="btn primary" id="liveStart">📷 Start camera</button>
+            <button class="btn" id="liveCalib" disabled>📐 Calibrate neck</button>
+            <button class="btn" id="liveAdjust" disabled>✥ Fine-tune corners</button>
+            <button class="btn" id="liveFlip" disabled>⇋ Mirror</button>
+            <button class="btn" id="liveSwitch" hidden>🔄 Switch camera</button>
+          </div>
+          <div class="live-settings">
+            <label class="check" title="Uses OpenCV feature tracking so the guides stay on the neck when the guitar moves"><input type="checkbox" id="liveFollow" checked> Follow guitar movement</label>
+            <label class="check"><input type="checkbox" id="liveSkeleton" checked> Hand skeleton</label>
+            <label class="live-strict">Strictness
+              <select id="liveStrict" class="input">
+                <option value="relaxed">Relaxed</option>
+                <option value="normal" selected>Normal</option>
+                <option value="strict">Strict</option>
+              </select>
+            </label>
+          </div>
+        </div>
+
+        <aside class="card live-side">
+          <label class="field">
+            <span>Chord to practise</span>
+            <select id="liveChord" class="input"></select>
+          </label>
+          <div class="live-diagram" id="liveDiagram"></div>
+          <div class="live-status" id="liveStatus">Start the camera to begin.</div>
+          <ul class="finger-checks" id="fingerChecks"></ul>
+          <div class="live-row">
+            <button class="btn" id="liveNext">Next chord ›</button>
+            <label class="check"><input type="checkbox" id="liveAuto" checked> Auto-advance</label>
+          </div>
+          <div class="stats two">
+            <div class="stat"><div class="stat-num" id="liveClean">0</div><div class="stat-label">Clean chords</div></div>
+            <div class="stat"><div class="stat-num" id="liveBest">–</div><div class="stat-label">Fastest change</div></div>
+          </div>
+          <details class="live-help">
+            <summary>How to set it up</summary>
+            <ol class="tips">
+              <li>Prop your phone or laptop so the camera sees the neck from the <b>headstock to about the 7th fret</b>, as large as possible.</li>
+              <li>Press <b>Calibrate neck</b>. The picture freezes: press and slide to aim with the zoom loupe, then let go on each of the 4 points.</li>
+              <li>If a line is slightly off, use <b>Fine-tune corners</b> and drag the handles.</li>
+              <li>With <b>Follow guitar movement</b> on, the guides stick to the neck as you move. The badge in the corner shows if tracking is locked.</li>
+              <li>Ghost dots show where each finger goes. Green = correct. Hold the chord for a moment to score it.</li>
+              <li>Use bright, even light, and avoid a window behind you. Plain clothing behind the neck helps tracking.</li>
+            </ol>
+          </details>
+        </aside>
+      </div>
+    </section>
+
+    <!-- ================= NOTES ================= -->
+    <section class="panel" id="panel-notes" role="tabpanel">
+      <div class="panel-head">
+        <div>
+          <h1>Notes on the fretboard</h1>
+          <p class="sub">Tap any fret to hear it. Pick a note to see everywhere it appears on the neck.</p>
+        </div>
+        <div class="seg" id="accidentalSeg" role="group" aria-label="Accidentals">
+          <button data-acc="sharp" class="on">♯ Sharps</button>
+          <button data-acc="flat">♭ Flats</button>
+        </div>
+      </div>
+
+      <div class="chips" id="noteFilters" role="group" aria-label="Highlight note"></div>
+
+      <div class="card fretboard-card">
+        <div class="fretboard-scroll">
+          <div class="fretboard" id="fretboard"></div>
+        </div>
+        <div class="fb-controls">
+          <label class="check"><input type="checkbox" id="showAllNotes" checked> Show all note names</label>
+          <label class="check"><input type="checkbox" id="naturalsOnly"> Natural notes only</label>
+        </div>
+      </div>
+
+      <div class="notes-grid">
+        <div class="card quiz-card">
+          <h2>Fretboard quiz</h2>
+          <p class="sub" id="quizPrompt">Test yourself: find the note on the given string. Names are hidden while the quiz runs.</p>
+          <div class="quiz-row">
+            <button class="btn primary" id="quizToggle">Start quiz</button>
+            <div class="quiz-score" id="quizScore">0 / 0</div>
+          </div>
+          <div class="quiz-feedback" id="quizFeedback" aria-live="polite"></div>
+        </div>
+
+        <div class="card">
+          <h2>Tuning reference</h2>
+          <p class="sub">Standard tuning, thickest string to thinnest. Tap to hear each open string.</p>
+          <div class="tuning" id="tuning"></div>
+        </div>
+
+        <div class="card">
+          <h2>The musical alphabet</h2>
+          <p class="sub">12 notes repeat forever. Each step is one fret (a half step). There's no sharp between <b>B–C</b> and <b>E–F</b>.</p>
+          <div class="chromatic" id="chromatic"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= THEORY / KEY EXPLORER ================= -->
+    <section class="panel" id="panel-theory" role="tabpanel">
+      <div class="panel-head">
+        <div>
+          <h1>Music theory</h1>
+          <p class="sub">Learn how music works, then put it straight onto the fretboard.</p>
+        </div>
+      </div>
+
+      <nav class="subnav" id="theoryNav" aria-label="Theory sections">
+        <button data-sub="lessons">📘 Lessons</button>
+        <button data-sub="keys">🎚️ Key explorer</button>
+        <button data-sub="circle">⭕ Circle of fifths</button>
+        <button data-sub="finder">🔍 Chord finder</button>
+        <button data-sub="transpose">🔁 Transpose &amp; capo</button>
+      </nav>
+
+      <!-- Lessons -->
+      <div class="subpanel" id="sub-lessons">
+        <div class="lessons-layout">
+          <div class="card lesson-nav">
+            <div class="lesson-progress">
+              <div class="lp-bar"><i id="lpFill"></i></div>
+              <span id="lpText"></span>
+            </div>
+            <ol class="lesson-list" id="lessonList"></ol>
+          </div>
+          <article class="card lesson" id="lessonBody" aria-live="polite"></article>
+        </div>
+      </div>
+
+      <!-- Circle of fifths -->
+      <div class="subpanel" id="sub-circle">
+        <div class="circle-layout">
+          <div class="card circle-card">
+            <svg id="circleSvg" viewBox="0 0 340 340" role="img" aria-label="Circle of fifths"></svg>
+            <p class="sub small center">Tap a key. Outer ring = major keys, inner ring = their relative minors.</p>
+          </div>
+          <div class="card" id="circleInfo"></div>
+        </div>
+      </div>
+
+      <!-- Chord finder -->
+      <div class="subpanel" id="sub-finder">
+        <div class="finder-layout">
+          <div class="card">
+            <div class="card-head">
+              <h2>Tap the frets you're holding</h2>
+              <div class="head-controls">
+                <button class="btn" id="finderPlay">▶ Strum</button>
+                <button class="btn" id="finderClear">Clear</button>
+              </div>
+            </div>
+            <p class="sub small">Tap one fret on each string (0 = open). Tap the same fret again to mute that string. The chord name updates as you go.</p>
+            <div class="finder-strings" id="finderStrings"></div>
+            <div class="fretboard-scroll"><div class="fretboard" id="finderBoard"></div></div>
+          </div>
+          <div class="card finder-result" id="finderResult"></div>
+        </div>
+      </div>
+
+      <!-- Transpose & capo -->
+      <div class="subpanel" id="sub-transpose">
+        <div class="transpose-layout">
+          <div class="card">
+            <h2>Your chords</h2>
+            <p class="sub small">Type or paste a song's chords. Bars ( | ) and line breaks are kept.</p>
+            <textarea id="tpInput" class="input tp-input" rows="5" spellcheck="false" aria-label="Chords to transpose">G  D  Em  C
+G  D  C  C
+Am7  D7  Gmaj7  G/B</textarea>
+            <div class="tp-controls">
+              <div class="field">
+                <span>Shift (half steps)</span>
+                <div class="stepper">
+                  <button class="round sm" id="tpDown" aria-label="Down a half step">−</button>
+                  <div class="tp-shift" id="tpShift">0</div>
+                  <button class="round sm" id="tpUp" aria-label="Up a half step">+</button>
+                </div>
+              </div>
+              <label class="field">
+                <span>Spelling</span>
+                <select id="tpSpell" class="input">
+                  <option value="auto">Auto</option>
+                  <option value="sharp">Sharps ♯</option>
+                  <option value="flat">Flats ♭</option>
+                </select>
+              </label>
+            </div>
+            <h3>Result <span id="tpKeyNote" class="tp-keynote"></span></h3>
+            <pre class="tp-output" id="tpOutput"></pre>
+          </div>
+          <div class="card">
+            <h2>Capo helper</h2>
+            <p class="sub small">Want the result to sound right but use easy open shapes? Put a capo on these frets and play the shapes shown.</p>
+            <div id="capoList"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Key explorer -->
+      <div class="subpanel" id="sub-keys">
+      <div class="card key-card">
+        <div class="key-top">
+          <button class="round sm" id="keyPrev" aria-label="Previous key">‹</button>
+          <div class="key-current">
+            <div class="key-big" id="keyName">C major</div>
+            <div class="key-info" id="keyInfo"></div>
+          </div>
+          <button class="round sm" id="keyNext" aria-label="Next key">›</button>
+        </div>
+        <input type="range" id="keySlider" min="0" max="11" step="1" value="0" aria-label="Key">
+        <div class="key-ticks" id="keyTicks"></div>
+        <div class="key-foot">
+          <p class="sub small">Keys follow the circle of fifths. Each step to the right adds one sharp, each step to the left adds one flat.</p>
+          <button class="btn" id="playKeyScale">▶ Hear the scale</button>
+        </div>
+      </div>
+
+      <div class="theory-grid">
+        <div class="card">
+          <div class="card-head">
+            <h2>Chords in this key</h2>
+            <div class="seg sm" id="diaSeg"><button data-d="3" class="on">Triads</button><button data-d="4">7ths</button></div>
+          </div>
+          <p class="sub small">Tap a chord to hear it. UPPERCASE numerals = major, lowercase = minor, ° = diminished.</p>
+          <div class="dia-grid" id="diaGrid"></div>
+        </div>
+        <div class="card">
+          <h2>Common progressions</h2>
+          <p class="sub small">Press ▶ and strum along. Uses the metronome tempo.</p>
+          <div id="progList"></div>
+        </div>
+      </div>
+
+      <div class="card sr-card">
+        <div class="card-head">
+          <h2>Scales &amp; modes</h2>
+          <div class="head-controls">
+            <div class="seg sm" id="modeView"><button data-v="relative" class="on">In the key</button><button data-v="parallel">Same root</button></div>
+            <div class="seg sm labelSeg"><button data-l="notes" class="on">Notes</button><button data-l="intervals">Intervals</button></div>
+          </div>
+        </div>
+        <p class="sub small" id="modeHint"></p>
+        <p class="sub small">Gaps between boxes show the distance in frets. The number under each note is its interval from the root (1 = root, ♭3 = minor third…).</p>
+        <div id="scaleList"></div>
+      </div>
+
+      <div class="card sr-card">
+        <div class="card-head">
+          <h2>Chords &amp; arpeggios</h2>
+          <div class="head-controls">
+            <div class="chips tight" id="formulaFilter">
+              <button class="chip" data-g="triads">Triads</button>
+              <button class="chip" data-g="sevenths">7ths &amp; 6ths</button>
+              <button class="chip" data-g="extended">9ths &amp; beyond</button>
+            </div>
+            <div class="seg sm labelSeg"><button data-l="notes" class="on">Notes</button><button data-l="intervals">Intervals</button></div>
+          </div>
+        </div>
+        <p class="sub small">Every chord type built on <b id="chordRootName">C</b>. The numbers are the chord's formula. Tap a row to hear the arpeggio and see it on the neck.</p>
+        <div id="formulaList"></div>
+      </div>
+      </div>
+    </section>
+
+    <!-- ================= EAR TRAINING ================= -->
+    <section class="panel" id="panel-ear" role="tabpanel">
+      <div class="panel-head">
+        <div>
+          <h1>Ear training</h1>
+          <p class="sub">Learn to recognise what you hear. It's the skill that lets you play songs by ear and improvise.</p>
+        </div>
+        <div class="seg" id="earModeSeg" role="group" aria-label="Exercise">
+          <button data-m="intervals" class="on">Intervals</button>
+          <button data-m="chords">Chord types</button>
+        </div>
+      </div>
+
+      <div class="ear-layout">
+        <div class="card ear-main">
+          <div class="ear-controls">
+            <label class="field"><span>Level</span>
+              <select id="earLevel" class="input">
+                <option value="0">Beginner</option>
+                <option value="1">Intermediate</option>
+                <option value="2">Everything</option>
+              </select>
+            </label>
+            <label class="field" id="earDirField"><span>Play notes</span>
+              <select id="earDir" class="input">
+                <option value="up">Low → high</option>
+                <option value="down">High → low</option>
+                <option value="both">Together</option>
+              </select>
+            </label>
+          </div>
+          <div class="ear-actions">
+            <button class="btn primary big" id="earPlay">▶ Play</button>
+            <button class="btn big" id="earNext" hidden>Next →</button>
+          </div>
+          <div class="ear-feedback" id="earFeedback" aria-live="polite">Press <b>Play</b> to hear two notes, then name the distance between them.</div>
+          <div class="ear-answers" id="earAnswers"></div>
+        </div>
+
+        <div class="card ear-side">
+          <h2>Your progress</h2>
+          <div class="stats two">
+            <div class="stat"><div class="stat-num" id="earScore">0 / 0</div><div class="stat-label">This session</div></div>
+            <div class="stat"><div class="stat-num" id="earStreak">0</div><div class="stat-label">Streak</div></div>
+          </div>
+          <h3>Accuracy (all time)</h3>
+          <div id="earStats"></div>
+          <button class="link" id="earReset">Reset stats</button>
+          <h3>How to practise</h3>
+          <ul class="tips">
+            <li>Sing or hum both notes before you answer.</li>
+            <li>Link each interval to a song you know (shown after each answer).</li>
+            <li>Five minutes a day beats an hour once a week.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= METRONOME ================= -->
+    <section class="panel" id="panel-metronome" role="tabpanel">
+      <div class="panel-head">
+        <div>
+          <h1>Metronome</h1>
+          <p class="sub">Start slow, play it clean, then speed up. <kbd>Space</kbd> starts and stops.</p>
+        </div>
+      </div>
+
+      <div class="metro-layout">
+        <div class="card metro-main">
+          <div class="beats" id="beatDots"></div>
+          <div class="bpm-display">
+            <button class="round" data-bpm="-5" aria-label="Slower by 5">−5</button>
+            <button class="round sm" data-bpm="-1" aria-label="Slower by 1">−1</button>
+            <div class="bpm">
+              <div class="bpm-num" id="bpmNum">90</div>
+              <div class="bpm-label"><span>BPM</span> · <span id="tempoName">Andante</span></div>
+            </div>
+            <button class="round sm" data-bpm="1" aria-label="Faster by 1">+1</button>
+            <button class="round" data-bpm="5" aria-label="Faster by 5">+5</button>
+          </div>
+          <input type="range" id="bpmSlider" min="30" max="250" value="90" aria-label="Tempo">
+          <div class="metro-actions">
+            <button class="btn primary big" id="metroToggle">Start</button>
+            <button class="btn big" id="tapBtn">Tap tempo</button>
+          </div>
+        </div>
+
+        <div class="card metro-settings">
+          <h2>Settings</h2>
+          <label class="field">
+            <span>Beats per bar</span>
+            <select id="beatsPerBar" class="input">
+              <option value="2">2 / 4</option>
+              <option value="3">3 / 4</option>
+              <option value="4" selected>4 / 4</option>
+              <option value="5">5 / 4</option>
+              <option value="6">6 / 8</option>
+              <option value="7">7 / 8</option>
+            </select>
+          </label>
+          <label class="field">
+            <span>Subdivision</span>
+            <select id="subdivision" class="input">
+              <option value="1" selected>Quarter notes ♩</option>
+              <option value="2">Eighth notes ♫</option>
+              <option value="3">Triplets</option>
+              <option value="4">Sixteenth notes</option>
+            </select>
+          </label>
+          <label class="field">
+            <span>Volume</span>
+            <input type="range" id="metroVolume" min="0" max="100" value="80">
+          </label>
+          <label class="check"><input type="checkbox" id="accentFirst" checked> Accent the first beat</label>
+
+          <div class="trainer">
+            <label class="check"><input type="checkbox" id="trainerOn"> Speed trainer</label>
+            <p class="sub small">Gradually speeds up while you play.</p>
+            <div class="trainer-grid">
+              <label><span>Add BPM</span><input type="number" class="input" id="trainerStep" value="5" min="1" max="30"></label>
+              <label><span>Every bars</span><input type="number" class="input" id="trainerBars" value="4" min="1" max="64"></label>
+              <label><span>Stop at</span><input type="number" class="input" id="trainerMax" value="140" min="30" max="250"></label>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= TIMER ================= -->
+    <section class="panel" id="panel-timer" role="tabpanel">
+      <div class="panel-head">
+        <div>
+          <h1>Practice timer</h1>
+          <p class="sub">Set a goal, focus on one thing, and let the timer keep you honest.</p>
+        </div>
+        <div class="seg" id="timerModeSeg" role="group" aria-label="Timer mode">
+          <button data-mode="countdown" class="on">Countdown</button>
+          <button data-mode="stopwatch">Stopwatch</button>
+        </div>
+      </div>
+
+      <div class="timer-layout">
+        <div class="card timer-main">
+          <div class="ring-wrap">
+            <svg class="ring" viewBox="0 0 200 200" aria-hidden="true">
+              <circle class="ring-bg" cx="100" cy="100" r="90"/>
+              <circle class="ring-fg" id="ringFg" cx="100" cy="100" r="90"/>
+            </svg>
+            <div class="ring-center">
+              <div class="time" id="timeDisplay">10:00</div>
+              <div class="time-label" id="timeLabel">Ready</div>
+            </div>
+          </div>
+          <div class="presets" id="presets"></div>
+          <div class="timer-actions">
+            <button class="btn primary big" id="timerToggle">Start</button>
+            <button class="btn big" id="timerReset">Reset</button>
+            <button class="btn big" id="timerPlus">+1 min</button>
+          </div>
+          <label class="field inline">
+            <span>Practicing</span>
+            <input id="focusInput" class="input" type="text" maxlength="60" placeholder="e.g. G → C chord changes">
+          </label>
+        </div>
+
+        <div class="card timer-side">
+          <h2>Your practice</h2>
+          <div class="stats">
+            <div class="stat"><div class="stat-num" id="todayTotal">0m</div><div class="stat-label">Today</div></div>
+            <div class="stat"><div class="stat-num" id="weekTotal">0m</div><div class="stat-label">Last 7 days</div></div>
+            <div class="stat"><div class="stat-num" id="streak">0</div><div class="stat-label">Day streak</div></div>
+          </div>
+          <h3>Recent sessions</h3>
+          <ul class="sessions" id="sessions"></ul>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="foot">Fretwork · tap anything with a ▶ to hear it · sound starts after your first click</footer>
+
+  <script src="chords.js"></script>
+  <script src="app.js"></script>
+  <script src="theory.js"></script>
+  <script src="learn.js"></script>
+  <script src="live.js"></script>
+</body>
+</html>
