@@ -1,0 +1,68 @@
+# Fretwork: web server settings for cPanel hosting (Apache or LiteSpeed).
+# Upload this file together with the site. Every block is guarded with <IfModule>,
+# so a host that lacks a module skips that block instead of failing with a 500 error.
+
+Options -Indexes
+DirectoryIndex index.html
+
+# ---------------------------------------------------------------------------
+# HTTPS only. Browsers allow the camera (Live coach) and the clipboard only on
+# secure pages. Turn on SSL first: cPanel → Security → SSL/TLS Status → Run AutoSSL.
+# ---------------------------------------------------------------------------
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+
+  # Redirect http → https (also correct behind Cloudflare or other proxies).
+  # /.well-known/ stays reachable so AutoSSL / Let's Encrypt can renew certificates.
+  RewriteCond %{HTTPS} !=on
+  RewriteCond %{HTTP:X-Forwarded-Proto} !=https
+  RewriteCond %{REQUEST_URI} !/\.well-known/
+  RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+  # Never serve hidden files (.git, .env …) or development files.
+  RewriteRule (^|/)\.(?!well-known/) - [F,L]
+  RewriteRule (^|/)(README\.md|deploy\.ps1|package(-lock)?\.json)$ - [F,L]
+</IfModule>
+
+# ---------------------------------------------------------------------------
+# Correct file types
+# ---------------------------------------------------------------------------
+<IfModule mod_mime.c>
+  AddType application/manifest+json .webmanifest
+  AddType text/javascript           .js
+  AddType image/svg+xml             .svg
+  AddType image/x-icon              .ico
+  AddCharset utf-8 .html .css .js .webmanifest .svg .txt
+</IfModule>
+
+# ---------------------------------------------------------------------------
+# Compression
+# ---------------------------------------------------------------------------
+<IfModule mod_deflate.c>
+  AddOutputFilterByType DEFLATE text/html text/css text/javascript application/javascript application/manifest+json image/svg+xml text/plain
+</IfModule>
+
+# ---------------------------------------------------------------------------
+# Caching
+#   HTML, CSS, JS, manifest: browsers re-check on every visit (cheap 304 replies),
+#   so visitors always get the latest version right after you upload an update.
+#   Images and icons: cached for 30 days.
+# ---------------------------------------------------------------------------
+<IfModule mod_headers.c>
+  <FilesMatch "\.(html|css|js|webmanifest)$">
+    Header set Cache-Control "no-cache"
+  </FilesMatch>
+  <FilesMatch "\.(png|svg|ico|jpe?g|webp)$">
+    Header set Cache-Control "public, max-age=2592000"
+  </FilesMatch>
+
+  # Security headers
+  Header always set X-Content-Type-Options "nosniff"
+  Header always set X-Frame-Options "SAMEORIGIN"
+  Header always set Referrer-Policy "strict-origin-when-cross-origin"
+  # Camera is used by the Live coach on this site only; everything else is off.
+  Header always set Permissions-Policy "camera=(self), microphone=(), geolocation=(), payment=(), usb=()"
+
+  # Optional: once HTTPS works for your domain, uncomment to make browsers always use it.
+  # Header always set Strict-Transport-Security "max-age=31536000"
+</IfModule>

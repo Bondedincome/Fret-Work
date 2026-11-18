@@ -43,6 +43,57 @@ Then go to <http://localhost:8000>.
 
 To use it on a phone, serve it over HTTPS (for example with a tunnel or a static host such as GitHub Pages). Mobile browsers block camera access on plain-HTTP LAN addresses.
 
+## Publishing on cPanel
+
+Fretwork is a static site, so it needs no database, PHP or Node.js on the server. Any cPanel host works.
+
+### 1. Build the upload package
+
+From the project folder in PowerShell:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File deploy.ps1
+```
+
+This creates `fretwork-site.zip` (and the same files in `dist/`). The package contains only the website files, with no README or `.git`. The script also checks that every referenced file exists and adds a version number to the CSS/JS links, so visitors get the new version after each update.
+
+### 2. Turn on HTTPS
+
+In cPanel open **Security → SSL/TLS Status** and make sure your domain has a valid certificate. If it doesn't, click **Run AutoSSL**. HTTPS is required: browsers block the camera (Live coach) and clipboard (Copy chords) on plain `http://` pages.
+
+### 3. Upload
+
+1. Open **Files → File Manager → `public_html`**. To put the site in a subfolder (e.g. `yourdomain.com/fretwork`), create that folder and open it instead. All paths are relative, so either works.
+2. Click **Upload** and choose `fretwork-site.zip`.
+3. Back in File Manager, right-click the zip, choose **Extract**, then delete the zip.
+4. To see the `.htaccess` file, click **Settings → Show Hidden Files (dotfiles)**.
+
+Then open `https://yourdomain.com` and check that the icon shows in the tab and that the Song and Live tabs work.
+
+If you prefer FTP (FileZilla, etc.), upload the **contents** of `dist/` to `public_html`, including the hidden `.htaccess`.
+
+### Updating the site
+
+Run `deploy.ps1` again, upload the new zip, and extract it over the old files (allow overwriting). Visitors get the new version on their next visit.
+
+### What `.htaccess` does
+
+- Redirects `http://` to `https://`, keeping `/.well-known/` reachable so AutoSSL can renew the certificate.
+- Serves the correct file types (e.g. `.webmanifest`), compresses text files, and stops visitors from browsing folder listings, hidden files and dev files.
+- Caching: HTML, CSS and JS are re-checked on each visit, so updates show up right away. Images are cached for 30 days.
+- Security headers: `nosniff`, `SAMEORIGIN` framing, a strict referrer policy, and a `Permissions-Policy` that allows the camera only for this site.
+- After HTTPS works, you can uncomment the `Strict-Transport-Security` line for extra protection.
+
+### Troubleshooting
+
+| Problem | Fix |
+| --- | --- |
+| **500 Internal Server Error** right after upload | Rename `.htaccess` to `htaccess.off`. If the site then loads, your host doesn't allow one of its settings; ask the host or delete lines until it works. |
+| **"Too many redirects"** behind Cloudflare | In Cloudflare, set **SSL/TLS** mode to **Full** (not *Flexible*). |
+| Camera doesn't start | The page must be opened with `https://`, and the visitor must allow camera access. |
+| Old version still showing | Hard-refresh (Ctrl+F5). Make sure you uploaded the newly built zip, not old files. |
+| A song link won't load in the Song tab | The other website blocks cross-site downloads (CORS). Download the file and upload it instead. |
+
 ## Using the Live coach
 
 1. Place the camera so it sees the neck from the **headstock to about the 7th fret**, as large as possible.
@@ -99,6 +150,9 @@ songcore.js  Song analysis engine (beats, key, chords); no DOM, also runs in Nod
 song.js      Song tab: file/link loading, synced player, timeline, chord sheet, capo helper
 favicon.ico      Browser-tab icon (16/32/48 px) for older browsers
 site.webmanifest App name, colours and icons for "Add to Home Screen"
+.htaccess        Server settings for Apache/LiteSpeed (HTTPS, caching, security headers)
+robots.txt       Lets search engines index the site
+deploy.ps1       Builds dist/ and fretwork-site.zip for uploading (see "Publishing on cPanel")
 icons/           logo-light-mode.png / logo-dark-mode.png (header logo, swapped with the theme),
                  icon.svg (tab icon that follows the system light/dark setting), home-screen PNGs
 ```
