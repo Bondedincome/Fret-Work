@@ -115,7 +115,15 @@ button { font: inherit; color: inherit; cursor: pointer; }
   display: flex; align-items: center; gap: .45rem;
   font-weight: 750; font-size: 1.15rem; color: var(--text); text-decoration: none;
 }
-.brand svg { width: 24px; height: 24px; color: var(--accent); }
+.brand-logo { width: 34px; height: 34px; margin: -5px 0; display: block; }
+/* Logo swaps with the theme: same rules as the colour tokens (system setting unless overridden). */
+.brand-logo.for-dark { display: none; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .brand-logo.for-light { display: none; }
+  :root:not([data-theme="light"]) .brand-logo.for-dark { display: block; }
+}
+:root[data-theme="dark"] .brand-logo.for-light { display: none; }
+:root[data-theme="dark"] .brand-logo.for-dark { display: block; }
 .tabs { display: flex; gap: .25rem; background: var(--surface-2); padding: .25rem; border-radius: 999px; }
 .tab {
   border: 0; background: none; padding: .4rem .9rem; border-radius: 999px;

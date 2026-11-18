@@ -97,6 +97,10 @@ learn.js     Theory lessons, circle of fifths, chord finder, transpose and capo
 live.js      Live coach: camera, hand/neck tracking, calibration, scoring
 songcore.js  Song analysis engine (beats, key, chords); no DOM, also runs in Node
 song.js      Song tab: file/link loading, synced player, timeline, chord sheet, capo helper
+favicon.ico      Browser-tab icon (16/32/48 px) for older browsers
+site.webmanifest App name, colours and icons for "Add to Home Screen"
+icons/           logo-light-mode.png / logo-dark-mode.png (header logo, swapped with the theme),
+                 icon.svg (tab icon that follows the system light/dark setting), home-screen PNGs
 ```
 
 The scripts are classic (non-module) scripts that share globals. They must load in the order used in `index.html`: `chords.js` → `app.js` → `theory.js` → `learn.js` → `live.js` → `songcore.js` → `song.js`.

@@ -1,0 +1,28 @@
+{
+  "name": "Fretwork · Guitar Practice",
+  "short_name": "Fretwork",
+  "description": "Guitar practice in the browser: chords, a camera coach, song-to-chords, theory, ear training, metronome and timer.",
+  "start_url": "./#chords",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#2a9d8f",
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "icons/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}
